@@ -47,8 +47,8 @@ Este proyecto sigue una arquitectura de monorepo, donde cada microservicio es un
 ### 1. Clonar el Repositorio
 
 ```bash
-git clone https://github.com/tu-usuario/microservicios.git
-cd microservicios
+git clone https://github.com/alvarowau/social-read
+cd social-read
 ```
 
 ### 2. Configurar Servicios Externos (PostgreSQL y Kafka)
@@ -159,9 +159,11 @@ Una vez que todos los servicios estén levantados y registrados en Eureka, puede
 
 ```json
 {
-    "username": "nuevoUsuario",
-    "email": "usuario@example.com",
-    "password": "passwordSeguro"
+    "name": "Alvaro",
+    "surname": "Wau",
+    "nickname": "AlvaroWau",
+    "email": "alvaro_wau@example.com",
+    "password": "Password123!"
 }
 ```
 
