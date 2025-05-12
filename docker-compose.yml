@@ -1,0 +1,100 @@
+version: '3.8'
+
+services:
+  # --- Infraestructura de Mensajería (Kafka) ---
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.0.1
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - red_lectora_network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.0.1
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_NUM_PARTITIONS: 3
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 1
+    networks:
+      - red_lectora_network
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    ports:
+      - "8080:8080"
+    depends_on:
+      - kafka
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local-kafka
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+    networks:
+      - red_lectora_network
+
+  # --- Bases de Datos PostgreSQL ---
+
+  user_db:
+    image: postgres:16-alpine
+    container_name: user_postgres_db
+    restart: always
+    environment:
+      POSTGRES_DB: user_db_name
+      POSTGRES_USER: user_user
+      POSTGRES_PASSWORD: user_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - user_postgres_data:/var/lib/postgresql/data
+    networks:
+      - red_lectora_network
+    healthcheck: # <--- ¡ESTO ES LO QUE FALTABA!
+      test: ["CMD-SHELL", "pg_isready -U user_user -d user_db_name"] # Usa los valores de tu environment
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  auth_db:
+    image: postgres:16-alpine
+    container_name: auth_postgres_db
+    restart: always
+    environment:
+      POSTGRES_DB: auth_db_name
+      POSTGRES_USER: auth_user
+      POSTGRES_PASSWORD: auth_password
+    ports:
+      - "5433:5432"
+    volumes:
+      - auth_db_data:/var/lib/postgresql/data
+    networks:
+      - red_lectora_network
+    healthcheck: # <--- ¡ESTO ES LO QUE FALTABA!
+      test: ["CMD-SHELL", "pg_isready -U auth_user -d auth_db_name"] # Usa los valores de tu environment
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+# --- Volúmenes para persistencia de datos ---
+volumes:
+  user_postgres_data:
+  auth_db_data:
+
+# --- Redes Docker ---
+networks:
+  red_lectora_network:
+    driver: bridge

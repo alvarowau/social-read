@@ -1,0 +1,68 @@
+server:
+  port: 0 # Configuración del servidor web embebido.
+    # Un puerto de '0' significa que Spring Boot asignará un puerto aleatorio disponible.
+    # Esto es fundamental en un entorno de microservicios con descubrimiento (Eureka),
+    # ya que el Gateway y otros servicios encontrarán este servicio a través de Eureka
+  # usando su nombre de servicio, no un puerto fijo.
+
+logging:
+  level:
+    root: INFO # Nivel de logging por defecto para la mayoría de los paquetes.
+    org.apache.kafka: INFO
+    org.springframework.kafka: INFO
+    org.redlectora: DEBUG # Puedes mantener DEBUG para tus paquetes si necesitas ver los logs de depuración de tu código.
+
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  profiles:
+    active: dev # Define el perfil de Spring activo (desarrollo).
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/user_db_name # Asegúrate de que el nombre de la DB es user_db_name
+    username: user_user
+    password: user_password
+    driver-class-name: org.postgresql.Driver
+
+  jpa: # Configuración de Spring Data JPA (que usa Hibernate por defecto).
+    hibernate:
+      ddl-auto: update # Estrategia de DDL. 'update' intentará actualizar el esquema de la base de datos.
+        # ¡CUIDADO! En producción, normalmente usarías 'none' y gestionarías los esquemas
+      # con herramientas de migración (ej. Flyway, Liquibase).
+    show-sql: true     # Muestra las consultas SQL que ejecuta Hibernate en la consola.
+    properties:
+      hibernate:
+        format_sql: true # Formatea el SQL para que sea más legible.
+    database-platform: org.hibernate.dialect.PostgreSQLDialect # Especifica el dialecto SQL para PostgreSQL.
+
+  application:
+    name: user-service # ¡NOMBRE MUY IMPORTANTE! Este es el nombre con el que tu microservicio se registrará en Eureka.
+    # El 'auth-service' lo buscará por este nombre (`@FeignClient(name = "user-service")`).
+
+  cloud: # Configuración de Spring Cloud.
+    function:
+      definition: userCreatedEventConsumer # Define el nombre de la función que actuará como consumidor de eventos.
+      # Este nombre DEBE coincidir con el nombre del método @Bean en UserCreatedEventListener.java
+    stream: # Configuración específica para Spring Cloud Stream (mensajería).
+      kafka: # Configuración para el binder de Kafka.
+        binder: # Detalles de cómo conectar con el broker de Kafka.
+          brokers: localhost:9092 # ¡¡¡CORREGIDO A LOCALHOST!!!
+      bindings: # Define los canales de entrada (input) y salida (output) para la mensajería.
+        userCreatedEventConsumer-in-0: # Este nombre DEBE coincidir con 'definition' de la función.
+          destination: user-created-topic # Este es el nombre del topic (tema) en Kafka del que el 'user-service' ESCUCHARÁ los eventos.
+          group: user-service-group     # Los grupos de consumidores permiten que múltiples instancias
+          # del mismo servicio consuman mensajes de un topic sin duplicarlos.
+          consumer:
+            max-attempts: 3
+            concurrency: 1
+            instance-count: 1
+            instance-index: 0
+
+# A continuación, la configuración para Eureka Server.
+eureka:
+  instance: # Configuración específica de esta instancia de microservicio en Eureka.
+    instance-id: ${spring.application.name}:${random.value} # ID único de esta instancia en Eureka.
+    prefer-ip-address: true # Registrar la dirección IP en lugar del hostname.
+  client: # Configuración de cómo este microservicio actuará como cliente de Eureka.
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/ # ¡¡¡CORREGIDO A LOCALHOST!!!

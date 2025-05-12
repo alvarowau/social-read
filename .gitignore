@@ -1,0 +1,78 @@
+# Directorios de compilación e IDEs
+
+# Archivos generados por Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/wrapper/maven-wrapper.jar # No subir el JAR del wrapper
+
+# Archivos generados por Gradle
+.gradle/
+build/
+out/
+.project
+.settings/
+.classpath
+.factorypath
+.cache/
+.apt_generated/
+
+# Archivos de IDE (IntelliJ IDEA)
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Archivos de IDE (VS Code)
+.vscode/
+
+# Archivos de IDE (Eclipse)
+.metadata/
+.sts4-workspace/
+
+# Archivos de log
+*.log
+logs/
+
+# Archivos de paquete (JARs, WARs, etc.)
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Archivos de clase compilados
+*.class
+
+# Archivos temporales y de backup
+*.tmp
+*.bak
+*.swp
+*.swo
+*.orig
+*.rej
+
+# Archivos específicos del sistema operativo
+.DS_Store       # macOS
+Thumbs.db       # Windows
+Desktop.ini     # Windows
+
+# Archivos de configuración que contienen secretos o información sensible
+# Esto es un ejemplo. Si tienes archivos de configuración con secretos, ¡asegúrate de ignorarlos!
+# application-prod.yml
+# *.env
+
+# Directorios de cobertura de tests
+coverage/
+.nyc_output/
+
+# Directorios de Docker
+# Si generas imágenes Docker localmente, estos directorios pueden contener datos
+# Ignora los directorios de contexto de construcción si no quieres subirlos
+# docker-build
