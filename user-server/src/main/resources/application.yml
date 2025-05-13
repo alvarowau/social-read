@@ -1,16 +1,19 @@
+# Configuracion base que se carga siempre
+#debug=true
 server:
   port: 0 # Configuración del servidor web embebido.
     # Un puerto de '0' significa que Spring Boot asignará un puerto aleatorio disponible.
     # Esto es fundamental en un entorno de microservicios con descubrimiento (Eureka),
-    # ya que el Gateway y otros servicios encontrarán este servicio a través de Eureka
+  # ya que el Gateway y otros servicios encontrarán este servicio a través de Eureka
   # usando su nombre de servicio, no un puerto fijo.
 
 logging:
   level:
-    root: INFO # Nivel de logging por defecto para la mayoría de los paquetes.
-    org.apache.kafka: INFO
-    org.springframework.kafka: INFO
-    org.redlectora: DEBUG # Puedes mantener DEBUG para tus paquetes si necesitas ver los logs de depuración de tu código.
+    # ... otras configuraciones de logging ...
+    org.springframework.kafka: DEBUG # Logs detallados del cliente Kafka de Spring
+    org.springframework.cloud.stream: DEBUG # Logs detallados de Spring Cloud Stream
+    org.springframework.messaging: DEBUG # Puede mostrar logs de conversión de mensajes
+    org.redlectora: DEBUG # Mantén este para tus System.out o logs personalizados
 
 spring:
   main:
@@ -27,7 +30,7 @@ spring:
   jpa: # Configuración de Spring Data JPA (que usa Hibernate por defecto).
     hibernate:
       ddl-auto: update # Estrategia de DDL. 'update' intentará actualizar el esquema de la base de datos.
-        # ¡CUIDADO! En producción, normalmente usarías 'none' y gestionarías los esquemas
+      # ¡CUIDADO! En producción, normalmente usarías 'none' y gestionarías los esquemas
       # con herramientas de migración (ej. Flyway, Liquibase).
     show-sql: true     # Muestra las consultas SQL que ejecuta Hibernate en la consola.
     properties:
@@ -57,6 +60,15 @@ spring:
             concurrency: 1
             instance-count: 1
             instance-index: 0
+            enable-dlq: true # <-- Habilita el Dead Letter Queue para mensajes que fallan
+            # ---> Configuración AÑADIDA para Deserialización y DLQ <---
+            configuration:
+              # Configuración del deserializador JSON
+              spring.json.value.default.type: org.redlectora.user.event.UserCreatedEvent # Indica el tipo esperado
+              spring.json.trusted.packages: org.redlectora.** # O especifica paquetes exactos, ej: org.redlectora.user.event, org.redlectora.auth.event
+              spring.json.use.type.headers: false
+              # spring.json.use.type.headers: false # Podría ser útil si el productor NO envía __TypeId__ header
+            # ---> Fin Configuración AÑADIDA <---
 
 # A continuación, la configuración para Eureka Server.
 eureka:

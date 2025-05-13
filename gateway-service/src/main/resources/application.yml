@@ -1,61 +1,77 @@
 # application.yml para el API Gateway
-
+debug: true
 server:
   port: 8081 # El API Gateway debe tener un puerto fijo y conocido.
-  # Los clientes (frontend, m�vil) se conectar�n a este puerto.
+  # Los clientes (frontend, móvil) se conectarán a este puerto.
+logging:
+  level:
+    org.redlectora.gateway.filter: DEBUG
+    # También puede ser útil ver los logs del gateway en general
+    # org.springframework.cloud.gateway: DEBUG
+application:
+  security:
+    jwt:
+      secret: XmasOI0349/K6eCQ9rYNIKY1UPBv1iYk55S3tKFYyJh5258Xd5HKhEKtqqyCzawou5XUGLqxDbO2PKcTvSaQIw==
+      expiration: 86400000 # Tiempo de expiración del JWT en milisegundos (24 horas)
 
 spring:
   application:
-    name: api-gateway # Este es el nombre con el que tu Gateway se registrar� en Eureka.
+    name: api-gateway # Este es el nombre con el que tu Gateway se registrará en Eureka.
 
   cloud:
     gateway:
       # Habilitamos el Discovery Locator. Esto permite que el Gateway
-      # autom�ticamente cree rutas para los servicios registrados en Eureka.
-      # Por ejemplo, si 'auth-service' se registra, el Gateway crear� una ruta
-      # que redirigir� las peticiones a '/auth-service/**' hacia el auth-service.
+      # automáticamente cree rutas para los servicios registrados en Eureka.
+      # Por ejemplo, si 'auth-service' se registra, el Gateway creará una ruta
+      # que redirigirá las peticiones a '/auth-service/**' hacia el auth-service.
       discovery:
         locator:
-          enabled: true             # Habilita la creaci�n autom�tica de rutas.
-          lower-case-service-id: true # Convierte los IDs de servicio a min�sculas en las rutas (ej. /auth-service en lugar de /AUTH-SERVICE).
+          enabled: true             # Habilita la creación automática de rutas.
+          lower-case-service-id: true # Convierte los IDs de servicio a minúsculas en las rutas (ej. /auth-service en lugar de /AUTH-SERVICE).
 
-      # Definici�n de rutas espec�ficas (opcional, pero bueno para un control m�s fino)
-      # Estas rutas se a�adir�n a las creadas por el Discovery Locator.
+      # Definición de rutas específicas (opcional, pero bueno para un control más fino)
+      # Estas rutas se añadirán a las creadas por el Discovery Locator.
       routes:
         # Ruta para el Auth Service
-        - id: auth_service_route # Un ID �nico para esta ruta.
-          uri: lb://AUTH-SERVICE # 'lb://' indica que usar� el balanceador de carga de Spring Cloud
-          # y el nombre del servicio en Eureka. (�Debe coincidir con spring.application.name del auth-service!)
+        - id: auth_service_route # Un ID único para esta ruta.
+          uri: lb://AUTH-SERVICE # 'lb://' indica que usará el balanceador de carga de Spring Cloud
+          # y el nombre del servicio en Eureka. (Debe coincidir con spring.application.name del auth-service!)
           predicates:
             - Path=/api/auth/** # Las peticiones que lleguen al Gateway y empiecen por /api/auth/
-              # ser�n redirigidas al Auth Service.
+            # serán redirigidas al Auth Service.
             # Ej: http://localhost:8080/api/auth/register -> auth-service/register
-          # filters: # <-- �A�ADE ESTA SECCI�N DE FILTROS!
-            # - RewritePath=/api/auth/(?<segment>.*), /auth/$\{segment} # <-- �ESTE FILTRO ES CLAVE!
-            # Toma /api/auth/algo y lo convierte en /auth/algo
+          #filters:
+            #- RewritePath=/api/auth/(?<segment>.*), /auth/${segment} # Este filtro es clave!
+              # Toma /api/auth/algo y lo convierte en /auth/algo
             # para el auth-service
 
         # Ruta para el User Service
-        - id: user_service_route # Un ID �nico para esta ruta.
-          uri: lb://USER-SERVICE # 'lb://' y el nombre del servicio en Eureka. (�Debe coincidir con spring.application.name del user-service!)
+        - id: user_service_route # Un ID único para esta ruta.
+          uri: lb://USER-SERVICE # 'lb://' y el nombre del servicio en Eureka. (Debe coincidir con spring.application.name del user-service!)
           predicates:
             - Path=/api/users/** # Las peticiones que lleguen al Gateway y empiecen por /api/users/
-              # ser�n redirigidas al User Service.
-            # Ej: http://localhost:8080/api/users/profile -> user-service/profile
+          filters:
+            - name: StripPrefix
+              args:
+                parts: 2 # Elimina las primeras 2 partes de la ruta
+            - name: AuthenticationFilter
+              args:
+                publicPaths:
+                  - /publico # Excluir esta ruta de autenticación
 
-# Configuraci�n para que el Gateway se registre como cliente en Eureka Server.
+# Configuración para que el Gateway se registre como cliente en Eureka Server.
 eureka:
   client:
     serviceUrl:
-      # URL de tu Eureka Server. Ya sabemos que est� en localhost:8761.
+      # URL de tu Eureka Server. Ya sabemos que está en localhost:8761.
       defaultZone: http://localhost:8761/eureka/
 
-# Configuraci�n de Actuator (para monitorizaci�n).
-# Aseg�rate de que has a�adido la dependencia 'spring-boot-starter-actuator' en tu pom.xml.
+# Configuración de Actuator (para monitorización).
+# Asegúrate de que has añadido la dependencia 'spring-boot-starter-actuator' en tu pom.xml.
 management:
   endpoints:
     web:
       exposure:
         include: health,info,gateway # Expone solo los endpoints de Actuator necesarios para Gateway.
-          # 'gateway' te da informaci�n sobre las rutas del Gateway.
-        # Puedes incluir '*' para exponer todos, pero en producci�n es menos seguro.
+        # 'gateway' te da información sobre las rutas del Gateway.
+        # Puedes incluir '*' para exponer todos, pero en producción es menos seguro.

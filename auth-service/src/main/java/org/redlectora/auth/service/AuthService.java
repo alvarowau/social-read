@@ -113,7 +113,7 @@ public class AuthService {
 
         try {
             System.out.println("DEBUG (AuthService): Attempting to send UserCreatedEvent to Kafka for Auth ID: " + savedUser.getId());
-            streamBridge.send("userProducer-out-0", userCreatedEvent);
+            streamBridge.send("userCreatedProducer-out-0", userCreatedEvent);
             System.out.println("DEBUG (AuthService): UserCreatedEvent sent to Kafka successfully for user: " + request.getEmail() + " (Auth ID: " + savedUser.getId() + ")");
         } catch (Exception e) {
             System.err.println("ERROR (AuthService): Failed to send UserCreatedEvent to Kafka for user " + request.getEmail() + ": " + e.getMessage());

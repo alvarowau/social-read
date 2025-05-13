@@ -15,6 +15,4 @@ public class UserCreatedEvent {
     private String surname;
     private String nickname;
     private String email;
-    // Podrías añadir más campos si fueran relevantes para el evento y el consumo por otros servicios
-    // private String confirmationToken; // Si el token de confirmación se generara aquí y lo necesitara otro servicio
 }

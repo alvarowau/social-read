@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired; // Para inyecció
 import org.springframework.stereotype.Service;               // Marca esta clase como un componente de servicio de Spring
 import org.springframework.transaction.annotation.Transactional; // Para gestión de transacciones de base de datos
 
+import java.util.List;
 import java.util.Optional; // Para manejar resultados que pueden estar ausentes
 
 @Service // Indica a Spring que esta clase es un "servicio" y la gestionará
@@ -29,6 +30,14 @@ public class UserService {
     public boolean existsByNickname(String nickname) {
         // Usamos el método existsByNickname que definimos en UserProfileRepository.
         return userProfileRepository.existsByNickname(nickname);
+    }
+
+    /**
+     * metodo para pruebas
+     * @return List<UserProfile>
+     */
+    public List<UserProfile> getAll(){
+        return userProfileRepository.findAll();
     }
 
     /**
