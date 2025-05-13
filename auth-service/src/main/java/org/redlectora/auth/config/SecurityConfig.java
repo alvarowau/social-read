@@ -34,11 +34,11 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable()) // Deshabilita CSRF para APIs REST stateless
                 .authorizeHttpRequests(auth -> auth
                         // PERMITE el acceso a los endpoints de registro y verificación de nickname SIN AUTENTICACIÓN
-                        .requestMatchers("/auth/register/**").permitAll()
-                        .requestMatchers("/auth/check-nickname-existence/**").permitAll()
-                        // Aquí podrías añadir más endpoints públicos si los tienes (ej. /auth/login)
-                        // .requestMatchers("/auth/login/**").permitAll()
-                        // ...
+                        .requestMatchers(
+                                "/api/auth/register/**",
+                                "/api/auth/check-nickname-existence/**",
+                                "/api/auth/login"
+                        ).permitAll()
 
                         // Requiere autenticación para el resto de endpoints (si los tuvieras)
                         .anyRequest().authenticated()

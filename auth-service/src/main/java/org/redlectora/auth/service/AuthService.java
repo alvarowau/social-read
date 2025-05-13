@@ -1,24 +1,25 @@
 package org.redlectora.auth.service;
 
-// ... (Tus importaciones existentes)
+import org.redlectora.auth.config.jwt.JwtService;
+import org.redlectora.auth.dto.AuthenticationResponse;
 import org.redlectora.auth.dto.RegisterRequest;
 import org.redlectora.auth.event.UserCreatedEvent;
 import org.redlectora.auth.exception.BadRequestException;
 import org.redlectora.auth.feign.client.UserServiceClient;
-
 import org.redlectora.auth.model.ERole;
 import org.redlectora.auth.model.Role;
 import org.redlectora.auth.model.User;
 import org.redlectora.auth.repository.RoleRepository;
 import org.redlectora.auth.repository.UserRepository;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional; // Importación existente
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -31,15 +32,15 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final UserServiceClient userServiceClient;
     private final StreamBridge streamBridge;
+    private final JwtService jwtService;
 
-    public AuthService(UserRepository userRepository, RoleRepository roleRepository,
-                       PasswordEncoder passwordEncoder, UserServiceClient userServiceClient,
-                       StreamBridge streamBridge) {
+    public AuthService(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder, UserServiceClient userServiceClient, StreamBridge streamBridge, JwtService jwtService) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
         this.userServiceClient = userServiceClient;
         this.streamBridge = streamBridge;
+        this.jwtService = jwtService;
     }
 
     public boolean checkNicknameExistence(String nickname) {
@@ -89,16 +90,15 @@ public class AuthService {
         User user = new User();
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setEnabled(false);
+        user.setEnabled(true);
         user.setFailedLoginAttempts(0);
         user.setAccountLocked(false);
 
         Set<Role> roles = new HashSet<>();
-        Role userRole = roleRepository.findByName(ERole.ROLE_USER)
-                .orElseThrow(() -> {
-                    System.err.println("ERROR (AuthService): Default user role 'ROLE_USER' not found in DB.");
-                    return new RuntimeException("Error: Default user role not found.");
-                });
+        Role userRole = roleRepository.findByName(ERole.ROLE_USER).orElseThrow(() -> {
+            System.err.println("ERROR (AuthService): Default user role 'ROLE_USER' not found in DB.");
+            return new RuntimeException("Error: Default user role not found.");
+        });
         roles.add(userRole);
         user.setRoles(roles);
 
@@ -107,13 +107,9 @@ public class AuthService {
         System.out.println("DEBUG (AuthService): User saved to auth-service DB. Auth ID: " + savedUser.getId());
 
         // 4. Publicar el evento UserCreatedEvent a Kafka (comunicación ASÍNCRONA)
-        UserCreatedEvent userCreatedEvent = UserCreatedEvent.builder()
-                .authUserId(savedUser.getId())
-                .name(request.getName()) // Asegúrate de que RegisterRequest tiene getName()
+        UserCreatedEvent userCreatedEvent = UserCreatedEvent.builder().authUserId(savedUser.getId()).name(request.getName()) // Asegúrate de que RegisterRequest tiene getName()
                 .surname(request.getSurname()) // Asegúrate de que RegisterRequest tiene getSurname()
-                .nickname(request.getNickname())
-                .email(request.getEmail())
-                .build();
+                .nickname(request.getNickname()).email(request.getEmail()).build();
 
         try {
             System.out.println("DEBUG (AuthService): Attempting to send UserCreatedEvent to Kafka for Auth ID: " + savedUser.getId());
@@ -127,5 +123,12 @@ public class AuthService {
             throw new RuntimeException("Fallo al enviar el evento de creación de usuario a Kafka.", e);
         }
         System.out.println("DEBUG (AuthService): Exiting registerUser method successfully.");
+    }
+
+
+    public AuthenticationResponse login(Authentication authentication) {
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        String token = jwtService.generateToken(userDetails);
+        return new AuthenticationResponse(token, userDetails.getUsername());
     }
 }

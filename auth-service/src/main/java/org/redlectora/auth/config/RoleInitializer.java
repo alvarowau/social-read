@@ -13,7 +13,7 @@ import java.util.Arrays;
 @Configuration
 public class RoleInitializer {
 
-    // @Order(1) // Opcional: Define el orden de ejecución si tienes múltiples CommandLineRunners
+    //@Order(2) // Opcional: Define el orden de ejecución si tienes múltiples CommandLineRunners
     @Bean
     public CommandLineRunner initRoles(RoleRepository roleRepository) {
         return args -> {
@@ -28,5 +28,6 @@ public class RoleInitializer {
                 }
             });
         };
+
     }
 }

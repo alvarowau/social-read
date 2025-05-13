@@ -1,23 +1,31 @@
 package org.redlectora.auth.controller;
 
-import org.redlectora.auth.dto.RegisterRequest; // Asegúrate de que RegisterRequest está en este paquete o en el correcto
-import org.redlectora.auth.service.AuthService; // Importa tu nuevo AuthService
+import org.redlectora.auth.dto.AuthenticationResponse;
+import org.redlectora.auth.dto.LoginRequest;
+import org.redlectora.auth.dto.RegisterRequest;
+import org.redlectora.auth.exception.BadRequestException;
+import org.redlectora.auth.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.*;
 
-import org.redlectora.auth.exception.BadRequestException; // Importa tu BadRequestException
-
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/auth")
 public class AuthServiceController {
 
-    private final AuthService authService; // Ahora inyectamos AuthService
+    private final AuthService authService;
+    private final AuthenticationManager authenticationManager;
+
 
     @Autowired
-    public AuthServiceController(AuthService authService) {
+    public AuthServiceController(AuthService authService, AuthenticationManager authenticationManager) {
         this.authService = authService;
+        this.authenticationManager = authenticationManager;
     }
 
     /**
@@ -55,7 +63,7 @@ public class AuthServiceController {
     @PostMapping("/register")
     public ResponseEntity<String> registerUser(@RequestBody RegisterRequest request) {
         try {
-            authService.registerUser(request); // El servicio se encarga de la lógica y excepciones
+            authService.registerUser(request);
             return ResponseEntity.status(HttpStatus.CREATED).body("Usuario registrado con éxito. Se ha enviado una solicitud para crear el perfil.");
         } catch (BadRequestException e) {
             // Captura la excepción de negocio (ej. email/nickname ya en uso)
@@ -64,5 +72,31 @@ public class AuthServiceController {
             // Captura cualquier otra excepción inesperada
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error en el registro: " + e.getMessage());
         }
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<AuthenticationResponse> handleLogin(@RequestBody LoginRequest request) {
+        UsernamePasswordAuthenticationToken intento = new UsernamePasswordAuthenticationToken(
+                request.getEmail(), request.getPassword()
+        );
+        try {
+            Authentication authentication = authenticationManager.authenticate(intento);
+            AuthenticationResponse response = authService.login(authentication); // Llama al servicio
+
+            // Retorna la respuesta exitosa con el token desde dentro del try
+            return ResponseEntity.ok(response);
+
+        } catch (AuthenticationException e) {
+            // Loguea el error (buena práctica)
+            System.err.println("Intento de autenticación fallido para usuario " + request.getEmail() + ": " + e.getMessage());
+
+            // Retorna una respuesta 401 Unauthorized en caso de fallo
+            // Puedes devolver un cuerpo nulo, un mensaje simple, o un DTO de error personalizado.
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null); // O un mensaje de error: .body("Credenciales inválidas")
+
+        }
+        // Elimina el return que estaba fuera del try-catch,
+        // ya que ambos casos (éxito y fallo) ahora retornan desde dentro de sus bloques.
+        // return ResponseEntity.ok(response); // <--- ¡ELIMINA ESTA LÍNEA!
     }
 }

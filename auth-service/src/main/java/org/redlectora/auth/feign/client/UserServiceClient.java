@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody; // Para enviar el cu
  */
 @FeignClient(name = "user-service") // ¡IMPORTANTE!
 // El atributo 'name' debe coincidir EXACTAMENTE con el 'spring.application.name'
-// configurado en el application.yml del microservicio de USUARIOS (user-service).
+// configurado en el application.properties del microservicio de USUARIOS (user-service).
 // Feign usará este nombre para buscar y resolver la ubicación del user-service
 // a través de Eureka Server. No necesitamos especificar IP o puerto aquí.
 public interface UserServiceClient {
