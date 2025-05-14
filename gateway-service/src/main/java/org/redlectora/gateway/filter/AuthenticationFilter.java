@@ -3,9 +3,6 @@ package org.redlectora.gateway.filter;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
-// Importar SignatureException específicamente
-// import org.slf4j.Logger; // Ya no necesitamos el Logger de SLF4J
-// import org.slf4j.LoggerFactory; // Ya no necesitamos el LoggerFactory
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
@@ -15,7 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import java.nio.charset.StandardCharsets; // Importar para usar el charset
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.stream.Collectors;
 

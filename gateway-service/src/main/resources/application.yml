@@ -38,6 +38,12 @@ spring:
           # y el nombre del servicio en Eureka. (Debe coincidir con spring.application.name del auth-service!)
           predicates:
             - Path=/api/auth/** # Las peticiones que lleguen al Gateway y empiecen por /api/auth/
+          filters:
+            - name: AuthenticationFilter
+              args:
+                publicPaths:
+                  - /api/auth/login
+                  - /api/auth/register
             # serán redirigidas al Auth Service.
             # Ej: http://localhost:8080/api/auth/register -> auth-service/register
           #filters:
@@ -51,13 +57,10 @@ spring:
           predicates:
             - Path=/api/users/** # Las peticiones que lleguen al Gateway y empiecen por /api/users/
           filters:
-            - name: StripPrefix
-              args:
-                parts: 2 # Elimina las primeras 2 partes de la ruta
             - name: AuthenticationFilter
               args:
                 publicPaths:
-                  - /publico # Excluir esta ruta de autenticación
+                  - /api/users/publico # Excluir esta ruta de autenticación
 
 # Configuración para que el Gateway se registre como cliente en Eureka Server.
 eureka:

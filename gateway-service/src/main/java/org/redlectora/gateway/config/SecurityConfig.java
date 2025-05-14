@@ -20,7 +20,8 @@ public class SecurityConfig {
                 // Configura las reglas de autorización para las solicitudes
                 .authorizeExchange(exchanges -> exchanges
                         // Permite el acceso sin autenticación a tu ruta pública
-                        .pathMatchers("/api/users/publico").permitAll() // <-- Configura tu ruta pública aquí
+                        .pathMatchers("/api/users/publico").permitAll()
+                        .pathMatchers("/api/users/logueado").permitAll() // <-- Configura tu ruta pública aquí
                         .pathMatchers("/api/auth/register").permitAll()
                         .pathMatchers("/api/auth/login").permitAll()
                         .pathMatchers("/api/auth/**").permitAll() // <-- Si tu ruta de auth también es pública

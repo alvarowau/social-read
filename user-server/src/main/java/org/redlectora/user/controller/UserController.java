@@ -3,6 +3,7 @@ package org.redlectora.user.controller;
 import org.redlectora.user.model.UserProfile;
 import org.redlectora.user.service.UserService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,6 +28,20 @@ public class UserController {
 
 
 
+    @GetMapping("/publico")
+    public ResponseEntity<List<UserProfile>> getAllPublico(
+            // <-- Opcional: Inyecta todas las cabeceras para verlas en el log
+            @RequestHeader Map<String, String> headers
+    ){
+        System.out.println("Esta entrando en el grande");
+        // <-- Añade logging para ver que llega al endpoint publico
+        logger.info("--> USER-SERVICE: Recibida solicitud en /api/users/publico");
+        logger.debug("--> USER-SERVICE: Cabeceras recibidas en /publico: {}", headers); // Usa debug para no llenar el log
+
+        return ResponseEntity.ok(userService.getAll());
+    }
+
+    @PreAuthorize("hasRole('ROLE_USER')")
     @GetMapping("/logueado")
     public ResponseEntity<List<UserProfile>> getAllLogueado(
             // <-- Opcional: Inyecta todas las cabeceras para ver la informacion del usuario

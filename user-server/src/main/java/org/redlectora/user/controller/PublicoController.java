@@ -33,6 +33,11 @@ public class PublicoController {
         logger.info("--> USER-SERVICE: Recibida solicitud en /api/users/publico");
         logger.debug("--> USER-SERVICE: Cabeceras recibidas en /publico: {}", headers); // Usa debug para no llenar el log
 
-        return ResponseEntity.ok(userService.getAll());
+        List<UserProfile> list = List.of(new UserProfile(
+                21l,21l,"Publico","Wau","Wau","alvaro@gmail.com"
+        ),new UserProfile(
+                21l,21l,"Alvaro","Wau","Wau","alvaro@gmail.com"
+        ));
+        return ResponseEntity.ok(list);
     }
 }
