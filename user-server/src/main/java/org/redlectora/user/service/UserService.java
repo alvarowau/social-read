@@ -1,9 +1,8 @@
 package org.redlectora.user.service;
 
-import org.redlectora.user.event.UserCreatedEvent;       // Importa la clase del evento de Kafka
+import org.redlectora.shared.user.event.UserCreatedEvent;
 import org.redlectora.user.model.UserProfile;            // Importa la entidad UserProfile
 import org.redlectora.user.repository.UserProfileRepository; // Importa el repositorio de UserProfile
-import org.springframework.beans.factory.annotation.Autowired; // Para inyección de dependencias
 import org.springframework.stereotype.Service;               // Marca esta clase como un componente de servicio de Spring
 import org.springframework.transaction.annotation.Transactional; // Para gestión de transacciones de base de datos
 

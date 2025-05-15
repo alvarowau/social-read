@@ -1,67 +1,80 @@
-# application.yml para el Microservicio de Auditoría
+# application.yml para el Microservicio de Auditoria
 
-# Configuración del Servidor Web
+# Configuracion del Servidor Web
 server:
-  port: 8085 # Un puerto fijo para este servicio (asegúrate de que sea único)
+  port: 8085 # Un puerto fijo para este servicio (asegurate de que sea unico)
 
-# Configuración de la Aplicación Spring
+# Configuracion de la Aplicacion Spring
 spring:
   application:
     name: auditing-service # Nombre del servicio para Eureka
 
-  # Configuración de la Base de Datos (JPA y DataSource)
+  # Configuracion de la Base de Datos (JPA y DataSource)
   datasource:
-    url: jdbc:postgresql://localhost:5434/audit_db_name # Conecta a la base de datos de auditoría en el puerto 5434 (el mapeado en docker-compose)
+    url: jdbc:postgresql://localhost:5434/audit_db_name # Conecta a la base de datos de auditoria en el puerto 5434 (el mapeado en docker-compose)
     username: audit_user # Usuario definido en docker-compose
-    password: audit_password # Contraseña definida en docker-compose
+    password: audit_password # Contrasena definida en docker-compose
     driver-class-name: org.postgresql.Driver # Driver de PostgreSQL
 
   jpa:
     hibernate:
-      ddl-auto: update # JPA actualizará el esquema de la DB según tus entidades (útil para desarrollo)
-      # ddl-auto: validate # Recomendado para producción (verifica que el esquema de DB coincide con las entidades)
-    show-sql: true # Muestra las consultas SQL en los logs (útil para depuración)
+      ddl-auto: update # JPA actualizara el esquema de la DB segun tus entidades (util para desarrollo)
+      # ddl-auto: validate # Recomendado para produccion (verifica que el esquema de DB coincide con las entidades)
+    show-sql: true # Muestra las consultas SQL en los logs (util para depuracion)
     properties:
       hibernate:
         format_sql: true # Formatea el SQL para mejor legibilidad
     database-platform: org.hibernate.dialect.PostgreSQLDialect # Dialecto de Hibernate para PostgreSQL
 
-  # Configuración del Consumidor de Kafka
-  kafka:
-    consumer:
-      bootstrap-servers: localhost:9092 # Ajusta si tu broker Kafka no está en localhost:9092
-      group-id: auditing-service-group # Un ID de grupo único para este servicio
-      auto-offset-reset: earliest # Empezar desde el principio si es la primera vez o el offset es desconocido
-      properties:
-        # Configuración del deserializador JSON para convertir el mensaje a la clase AuditEvent
-        # Esperamos que el productor envíe el tipo de la clase en una cabecera del mensaje por defecto.
-        # El paquete "org.redlectora.audit.event" deberá contener la clase AuditEvent.
-        spring:
-          json:
-            trusted:
-              packages: "org.redlectora.audit.event" # <-- Ajusta si el paquete de AuditEvent es diferente
 
-  # Configuración de Spring Security (general)
-  # La configuración detallada de SecurityFilterChain se hará en una clase @Configuration
+  cloud:
+    function:
+      # El nombre de la funcion consumidora que definimos en AuditConsumer.java
+      definition: auditEventsListener
+    stream:
+      kafka:
+        binder:
+          brokers: localhost:9092 # <--- VERIFICA ESTA DIRECCION segun donde corras el servicio
+      bindings:
+        # Nombre del binding: Debe coincidir con 'definition' y terminar en '-in-0' para un consumidor de entrada.
+        auditEventsListener-in-0:
+          # El topico de Kafka del que el auditing-service ESCUCHARa los eventos de auditoria.
+          destination: audit-events-topic # <--- Este debe coincidir con el topico al que el Auth Service envia!
+          # Grupo de consumidores para el auditing-service. Debe ser unico.
+          group: auditing-service-group
 
-# Configuración de Eureka Client
+          consumer:
+            # Puedes anadir propiedades del consumidor aqui si necesitas (ej. reintentos, DLQ)
+            # max-attempts: 3
+            # enable-dlq: true
+            # dlq-name: audit-events-dlq
+
+            configuration:
+              # Indica el tipo esperado del payload. DEBE ser la clase AuditEvent del modulo shared-models.
+              spring.json.value.default.type: org.redlectora.shared.audit.event.AuditEvent
+              # Paquetes confiables para el deserializador JSON. DEBE incluir el paquete donde esta AuditEvent.
+              trusted.packages: org.redlectora.shared.audit.event
+              # Normalmente, si el productor pone el tipo en las cabeceras del mensaje, use.type.headers: true (por defecto) es correcto.
+              # Si el productor NO pone las cabeceras, necesitas default.type y use.type.headers: false.
+              use.type.headers: false # Mantener en true si el productor usa el serializador por defecto
+
+# Configuracion de Eureka Client
 eureka:
   client:
     serviceUrl:
-      defaultZone: http://localhost:8761/eureka/ # URL de tu Eureka Server (ajusta si no está en localhost:8761)
+      defaultZone: http://localhost:8761/eureka/ # URL de tu Eureka Server (ajusta si no esta en localhost:8761)
 
-# Propiedad personalizada para el nombre del tópico de auditoría
+# Propiedad personalizada para el nombre del topico de auditoria (usada por el productor si no usa bindings, o por referencia)
+# No afecta directamente a este consumidor que usa el 'destination' del binding.
 audit:
   kafka:
-    topic: audit-events-topic # El nombre del tópico en Kafka para eventos de auditoría
+    topic: audit-events-topic
 
-# Configuración de Logging
+# Configuracion de Logging con niveles de depuracion
 logging:
   level:
-    root: INFO # Nivel de logging por defecto
-    org.redlectora.auditing: DEBUG # Nivel DEBUG para tus clases en este servicio
-    org.springframework.kafka: INFO # INFO es suficiente para Kafka a menos que depures problemas con el binder
-    org.springframework.orm.jpa: INFO # INFO para JPA a menos que depures problemas de persistencia
-    org.hibernate: INFO # INFO para Hibernate
-    org.springframework.web: INFO # INFO para Web a menos que depures problemas de controladores
-    org.springframework.security: INFO # INFO para Security a menos que depures problemas de autenticación/autorización
+    # ... otras configuraciones de logging ...
+    org.springframework.kafka: DEBUG # Logs detallados del cliente Kafka de Spring
+    org.springframework.cloud.stream: DEBUG # Logs detallados de Spring Cloud Stream
+    org.springframework.messaging: DEBUG # Puede mostrar logs de conversiÃ³n de mensajes
+    org.redlectora: DEBUG # MantÃ©n este para tus System.out o logs personalizados

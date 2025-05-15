@@ -1,4 +1,4 @@
-package org.redlectora.user.event;
+package org.redlectora.shared.user.event;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

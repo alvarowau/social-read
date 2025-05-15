@@ -64,8 +64,8 @@ spring:
             # ---> Configuración AÑADIDA para Deserialización y DLQ <---
             configuration:
               # Configuración del deserializador JSON
-              spring.json.value.default.type: org.redlectora.user.event.UserCreatedEvent # Indica el tipo esperado
-              spring.json.trusted.packages: org.redlectora.** # O especifica paquetes exactos, ej: org.redlectora.user.event, org.redlectora.auth.event
+              spring.json.value.default.type: org.redlectora.shared.user.event.UserCreatedEvent # Indica el tipo esperado
+              spring.json.trusted.packages: org.redlectora.shared.user.event # O especifica paquetes exactos, ej: org.redlectora.user.event, org.redlectora.auth.event
               spring.json.use.type.headers: false
               # spring.json.use.type.headers: false # Podría ser útil si el productor NO envía __TypeId__ header
             # ---> Fin Configuración AÑADIDA <---

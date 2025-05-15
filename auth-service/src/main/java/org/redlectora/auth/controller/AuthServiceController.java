@@ -35,23 +35,23 @@ public class AuthServiceController {
      * @param nickname El nickname a verificar, proporcionado en la URL.
      * @return Una respuesta HTTP que indica si el nickname existe o no.
      */
-    @GetMapping("/check-nickname-existence/{nickname}")
-    public ResponseEntity<String> checkNicknameExistence(@PathVariable("nickname") String nickname) {
-        try {
-            boolean exists = authService.checkNicknameExistence(nickname);
-            if (exists) {
-                return ResponseEntity.ok("El nickname '" + nickname + "' YA EXISTE en el User Service.");
-            } else {
-                return ResponseEntity.ok("El nickname '" + nickname + "' NO EXISTE en el User Service. ¡Puedes usarlo!");
-            }
-        } catch (RuntimeException e) {
-            // Captura las excepciones del servicio y devuelve un error 500 o 400 si es BadRequest
-            if (e instanceof BadRequestException) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-            }
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error interno al verificar nickname: " + e.getMessage());
-        }
-    }
+//    @GetMapping("/check-nickname-existence/{nickname}")
+//    public ResponseEntity<String> checkNicknameExistence(@PathVariable("nickname") String nickname) {
+//        try {
+//            boolean exists = authService.checkNicknameExistence(nickname);
+//            if (exists) {
+//                return ResponseEntity.ok("El nickname '" + nickname + "' YA EXISTE en el User Service.");
+//            } else {
+//                return ResponseEntity.ok("El nickname '" + nickname + "' NO EXISTE en el User Service. ¡Puedes usarlo!");
+//            }
+//        } catch (RuntimeException e) {
+//            // Captura las excepciones del servicio y devuelve un error 500 o 400 si es BadRequest
+//            if (e instanceof BadRequestException) {
+//                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+//            }
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error interno al verificar nickname: " + e.getMessage());
+//        }
+//    }
 
     /**
      * Endpoint para registrar un nuevo usuario.

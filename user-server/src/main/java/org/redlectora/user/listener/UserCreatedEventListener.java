@@ -1,6 +1,6 @@
 package org.redlectora.user.listener;
 
-import org.redlectora.user.event.UserCreatedEvent;
+import org.redlectora.shared.user.event.UserCreatedEvent;
 import org.redlectora.user.service.UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;

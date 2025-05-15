@@ -31,6 +31,7 @@
         <module>user-server</module>
         <module>auth-service</module>
         <module>auditing-service</module>
+        <module>shared-models</module>
     </modules>
 
     <build>
