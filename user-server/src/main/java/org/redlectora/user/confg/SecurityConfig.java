@@ -47,6 +47,7 @@ public class SecurityConfig {
                         // Si NO usaste StripPrefix (nuestra última corrección), estas rutas deben ser las completas esperadas por el USER-SERVICE.
                         // Por ejemplo, si USER-SERVICE espera "/api/users/publico"
                         .requestMatchers("/api/users/publico").permitAll() // Permite el acceso a la ruta pública sin autenticación
+                        .requestMatchers("/api/users/exists/nickname/**").permitAll()
                         // .requestMatchers("/otros/endpoints/publicos").permitAll() // Otras rutas públicas si las hay
 
                         // Define aquí las rutas que requieren autenticación

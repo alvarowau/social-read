@@ -30,6 +30,7 @@
         <module>gateway-service</module>
         <module>user-server</module>
         <module>auth-service</module>
+        <module>auditing-service</module>
     </modules>
 
     <build>

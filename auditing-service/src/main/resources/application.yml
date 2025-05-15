@@ -1,0 +1,67 @@
+# application.yml para el Microservicio de Auditoría
+
+# Configuración del Servidor Web
+server:
+  port: 8085 # Un puerto fijo para este servicio (asegúrate de que sea único)
+
+# Configuración de la Aplicación Spring
+spring:
+  application:
+    name: auditing-service # Nombre del servicio para Eureka
+
+  # Configuración de la Base de Datos (JPA y DataSource)
+  datasource:
+    url: jdbc:postgresql://localhost:5434/audit_db_name # Conecta a la base de datos de auditoría en el puerto 5434 (el mapeado en docker-compose)
+    username: audit_user # Usuario definido en docker-compose
+    password: audit_password # Contraseña definida en docker-compose
+    driver-class-name: org.postgresql.Driver # Driver de PostgreSQL
+
+  jpa:
+    hibernate:
+      ddl-auto: update # JPA actualizará el esquema de la DB según tus entidades (útil para desarrollo)
+      # ddl-auto: validate # Recomendado para producción (verifica que el esquema de DB coincide con las entidades)
+    show-sql: true # Muestra las consultas SQL en los logs (útil para depuración)
+    properties:
+      hibernate:
+        format_sql: true # Formatea el SQL para mejor legibilidad
+    database-platform: org.hibernate.dialect.PostgreSQLDialect # Dialecto de Hibernate para PostgreSQL
+
+  # Configuración del Consumidor de Kafka
+  kafka:
+    consumer:
+      bootstrap-servers: localhost:9092 # Ajusta si tu broker Kafka no está en localhost:9092
+      group-id: auditing-service-group # Un ID de grupo único para este servicio
+      auto-offset-reset: earliest # Empezar desde el principio si es la primera vez o el offset es desconocido
+      properties:
+        # Configuración del deserializador JSON para convertir el mensaje a la clase AuditEvent
+        # Esperamos que el productor envíe el tipo de la clase en una cabecera del mensaje por defecto.
+        # El paquete "org.redlectora.audit.event" deberá contener la clase AuditEvent.
+        spring:
+          json:
+            trusted:
+              packages: "org.redlectora.audit.event" # <-- Ajusta si el paquete de AuditEvent es diferente
+
+  # Configuración de Spring Security (general)
+  # La configuración detallada de SecurityFilterChain se hará en una clase @Configuration
+
+# Configuración de Eureka Client
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/ # URL de tu Eureka Server (ajusta si no está en localhost:8761)
+
+# Propiedad personalizada para el nombre del tópico de auditoría
+audit:
+  kafka:
+    topic: audit-events-topic # El nombre del tópico en Kafka para eventos de auditoría
+
+# Configuración de Logging
+logging:
+  level:
+    root: INFO # Nivel de logging por defecto
+    org.redlectora.auditing: DEBUG # Nivel DEBUG para tus clases en este servicio
+    org.springframework.kafka: INFO # INFO es suficiente para Kafka a menos que depures problemas con el binder
+    org.springframework.orm.jpa: INFO # INFO para JPA a menos que depures problemas de persistencia
+    org.hibernate: INFO # INFO para Hibernate
+    org.springframework.web: INFO # INFO para Web a menos que depures problemas de controladores
+    org.springframework.security: INFO # INFO para Security a menos que depures problemas de autenticación/autorización

@@ -61,8 +61,8 @@ services:
       - user_postgres_data:/var/lib/postgresql/data
     networks:
       - red_lectora_network
-    healthcheck: # <--- ¡ESTO ES LO QUE FALTABA!
-      test: ["CMD-SHELL", "pg_isready -U user_user -d user_db_name"] # Usa los valores de tu environment
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user_user -d user_db_name"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -82,8 +82,30 @@ services:
       - auth_db_data:/var/lib/postgresql/data
     networks:
       - red_lectora_network
-    healthcheck: # <--- ¡ESTO ES LO QUE FALTABA!
-      test: ["CMD-SHELL", "pg_isready -U auth_user -d auth_db_name"] # Usa los valores de tu environment
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U auth_user -d auth_db_name"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # --- Base de Datos para el Servicio de Auditoría ---
+  audit_db:
+    image: postgres:16-alpine # Usamos la misma imagen
+    container_name: audit_postgres_db # Nombre del contenedor
+    restart: always
+    environment:
+      POSTGRES_DB: audit_db_name # Nombre de la base de datos de auditoría
+      POSTGRES_USER: audit_user # Usuario para la base de datos de auditoría
+      POSTGRES_PASSWORD: audit_password # Contraseña para la base de datos de auditoría
+    ports:
+      - "5434:5432" # Mapeamos a un puerto local diferente (5434)
+    volumes:
+      - audit_postgres_data:/var/lib/postgresql/data # Volumen para persistir datos
+    networks:
+      - red_lectora_network # En la misma red que los otros servicios
+    healthcheck: # Healthcheck similar a las otras DBs
+      test: ["CMD-SHELL", "pg_isready -U audit_user -d audit_db_name"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -93,6 +115,7 @@ services:
 volumes:
   user_postgres_data:
   auth_db_data:
+  audit_postgres_data: # <--- ¡Añade el nuevo volumen aquí!
 
 # --- Redes Docker ---
 networks:

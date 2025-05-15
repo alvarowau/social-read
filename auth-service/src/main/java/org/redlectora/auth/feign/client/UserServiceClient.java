@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody; // Para enviar el cu
  * Interfaz FeignClient para comunicarse con el Microservicio de Usuarios (user-service).
  * Spring Cloud OpenFeign usará esta interfaz para crear un cliente HTTP proxy.
  */
-@FeignClient(name = "user-service") // ¡IMPORTANTE!
+@FeignClient(name = "user-service")
 // El atributo 'name' debe coincidir EXACTAMENTE con el 'spring.application.name'
 // configurado en el application.properties del microservicio de USUARIOS (user-service).
 // Feign usará este nombre para buscar y resolver la ubicación del user-service
